@@ -174,6 +174,51 @@ namespace ADO_NET_ДЗ_Модуль_02_часть_02
         {
             _tableName = comboBox_tables.SelectedItem as string;
         }
+        
+        private void ShowViewFromDB(string p_TableFromDB)
+        {
+            var cmd = new NpgsqlCommand(p_TableFromDB, _connection);
+            cmd.CommandType = CommandType.TableDirect;
+            _dt = new DataTable();
+            _da = new NpgsqlDataAdapter(cmd);
+            _da.Fill(_dt);
+            dgv.DataSource = _dt;
+        }
 
+        private void button1_Click(object sender, EventArgs e)
+        {
+
+            if (radioButton1.Checked) ShowViewFromDB("Quantity_max");
+            if (radioButton2.Checked) ShowViewFromDB("Profit_max");
+            if(radioButton3.Checked)
+            {
+
+                string selectCom = "select concat(sm.firstname, ' ', sm.lastname) as \"Fullname\", sm.profit as \"Profit\"" +
+                    "from sales s join sales_manager sm on s.id_sales_manager = sm.id " +
+                    "group by  concat(sm.firstname, ' ', sm.lastname), sm.profit, s.date_of_sale " +
+                    $"having s.date_of_sale between '{dateTimePicker1.Value.ToShortDateString()}' and '{dateTimePicker2.Value.ToShortDateString()}' order by sm.profit desc limit 1";
+                var cmd = new NpgsqlCommand(selectCom, _connection);
+                cmd.CommandType = CommandType.Text;
+                _dt = new DataTable();
+                _da = new NpgsqlDataAdapter(cmd);
+                _da.Fill(_dt);
+                dgv.DataSource = _dt;
+            }
+            if (radioButton4.Checked) ShowViewFromDB("Best_buyer_company");
+            if (radioButton5.Checked) ShowViewFromDB("max_number_type_of_product_sales");
+            if (radioButton6.Checked) ShowViewFromDB("most_profitable_type_of_product");
+            if (radioButton7.Checked) ShowViewFromDB("most_popular_products");
+            if (radioButton8.Checked)
+            {
+                string selectCom = "select distinct st.\"name\" as \"Stationery name\"  from stationery st " +
+                    $"join sales s on st.id = s.id_stationery where now() >= s.date_of_sale + {Convert.ToInt32(textBox_days.Text)};";
+                var cmd = new NpgsqlCommand(selectCom, _connection);
+                cmd.CommandType = CommandType.Text;
+                _dt = new DataTable();
+                _da = new NpgsqlDataAdapter(cmd);
+                _da.Fill(_dt);
+                dgv.DataSource = _dt;
+            }
+        }
     }
 }
